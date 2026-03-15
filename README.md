@@ -1,2 +1,5 @@
 # 46770-Integrated-Energy-Grids
-Some stuff for Integrated I guess...?
+assignment 1, group 22
+
+authors:
+Kris, Pantelia, Francis, Mathieu
