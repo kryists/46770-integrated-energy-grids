@@ -10,49 +10,48 @@ def annuity(y, r):
        return 1/y
     
 
-def build_and_solve(year: int) -> pypsa.Network:
-     
-    n = pypsa.Network()
-    snapshots = pd.date_range(f'{year}-01-01 00:00Z', f'{year}-12-31 23:00Z', freq='h')
-    n.set_snapshots(snapshots.values)
-    n.add("Bus", "ITA")
+year = 2010
+n = pypsa.Network()
+snapshots = pd.date_range(f'{year}-01-01 00:00Z', f'{year}-12-31 23:00Z', freq='h')
+n.set_snapshots(snapshots.values)
+n.add("Bus", "ITA")
  
-    # Demand Data
-    demand = pd.read_csv('data/electricity_demand.csv', sep=';', index_col=0)
-    demand.index = pd.to_datetime(demand.index)
-    country = "ITA"
-    n.add('Load', "Demand", bus='ITA', p_set=demand[country].values)
+# Demand Data
+demand = pd.read_csv('data/electricity_demand.csv', sep=';', index_col=0)
+demand.index = pd.to_datetime(demand.index)
+country = "ITA"
+n.add('Load', "Demand", bus='ITA', p_set=demand[country].values)
  
-    # Carriers
-    n.add("Carrier", "Gas", co2_emissions=0.19)
-    n.add("Carrier", "Wind")
-    n.add("Carrier", "Solar")
+# Carriers
+n.add("Carrier", "Gas", co2_emissions=0.19)
+n.add("Carrier", "Wind")
+n.add("Carrier", "Solar")
  
-    # Wind Data
-    data_wind = pd.read_csv('data/onshore_wind_1979-2017.csv', sep=';', index_col=0)
-    data_wind.index = pd.to_datetime(data_wind.index, utc=True)
-    cf_wind = data_wind[country][[h.strftime("%Y-%m-%dT%H:%M:%SZ") for h in n.snapshots]]
-    capital_cost_wind = annuity(30, 0.07) * 910_000 * (1 + 0.033)
-    n.add("Generator", "Wind",
+# Wind Data
+data_wind = pd.read_csv('data/onshore_wind_1979-2017.csv', sep=';', index_col=0)
+data_wind.index = pd.to_datetime(data_wind.index, utc=True)
+cf_wind = data_wind[country][[h.strftime("%Y-%m-%dT%H:%M:%SZ") for h in n.snapshots]]
+capital_cost_wind = annuity(30, 0.07) * 910_000 * (1 + 0.033)
+n.add("Generator", "Wind",
           bus="ITA", p_nom_extendable=True, carrier="Wind",
           capital_cost=capital_cost_wind, marginal_cost=0,
           p_max_pu=cf_wind.values)
  
-    # Solar Data
-    data_solar = pd.read_csv('data/pv_optimal.csv', sep=';', index_col=0)
-    data_solar.index = pd.to_datetime(data_solar.index)
-    cf_solar = data_solar[country][[h.strftime("%Y-%m-%dT%H:%M:%SZ") for h in n.snapshots]]
-    capital_cost_solar = annuity(25, 0.07) * 425_000 * (1 + 0.03)
-    n.add("Generator", "Solar",
+# Solar Data
+data_solar = pd.read_csv('data/pv_optimal.csv', sep=';', index_col=0)
+data_solar.index = pd.to_datetime(data_solar.index)
+cf_solar = data_solar[country][[h.strftime("%Y-%m-%dT%H:%M:%SZ") for h in n.snapshots]]
+capital_cost_solar = annuity(25, 0.07) * 425_000 * (1 + 0.03)
+n.add("Generator", "Solar",
           bus="ITA", p_nom_extendable=True, carrier="Solar",
           capital_cost=capital_cost_solar, marginal_cost=0,
           p_max_pu=cf_solar.values)
  
-    # Gas Data
-    capital_cost_OCGT = annuity(25, 0.07) * 560_000 * (1 + 0.033)
-    fuel_cost  = 21.6       # €/MWh_th
-    efficiency = 0.39
-    n.add("Generator", "OCGT",
+# Gas Data
+capital_cost_OCGT = annuity(25, 0.07) * 560_000 * (1 + 0.033)
+fuel_cost  = 21.6       # €/MWh_th
+efficiency = 0.39
+n.add("Generator", "OCGT",
           bus="ITA", carrier="Gas",
           capital_cost=capital_cost_OCGT,
           marginal_cost=fuel_cost / efficiency,
@@ -60,15 +59,14 @@ def build_and_solve(year: int) -> pypsa.Network:
     
 
  
-    n.optimize(solver_name='gurobi')
-    return n
+n.optimize(solver_name='gurobi')
 
 
 print('=' * 50)
 print('Part A')
 print('=' * 50)
-print("\nSolving 2010 model …\n")
-n = build_and_solve(2010)
+print(f'\nSolving {year} model …\n')
+
  
 print(f"Total cost : {n.objective / 1e6:.2f} million €")
 print(f"Cost/MWh   : {n.objective / n.loads_t.p.sum().values[0]:.2f} €/MWh")
@@ -78,7 +76,7 @@ print(n.generators.p_nom_opt)
 COLORS = {'Wind': 'blue', 'Solar': 'orange', 'OCGT': 'grey', 'Demand': 'black'}
  
 # Dispatch – summer week (first week of July)
-summer_start = pd.Timestamp('2010-07-06')
+summer_start = pd.Timestamp(f'{year}-07-06')
 summer_slice  = slice(summer_start, summer_start + pd.Timedelta(hours=167))
  
 fig, ax = plt.subplots(figsize=(12, 4))
@@ -88,16 +86,17 @@ ax.stackplot(ts.index, ts['Wind'], ts['Solar'], ts['OCGT'],
              labels=['Wind', 'Solar', 'OCGT'],
              colors=[COLORS['Wind'], COLORS['Solar'], COLORS['OCGT']], alpha=0.85)
 ax.plot(dem.index, dem.values, color='black', lw=1.5, label='Demand')
-ax.set_title('Dispatch - Summer Week (July 2010)')
+ax.set_title(f'Dispatch - Summer Week (July {year})')
 ax.set_ylabel('Power [MW]')
-ax.legend(loc='upper left', framealpha=0.9)
+ax.legend(loc='best', framealpha=0.9)
 ax.set_xlabel('Date')
+ax.set_xlim(ts.index[0], ts.index[-1])
 fig.tight_layout()
-#plt.savefig('dispatch_summer.png', dpi=150)
+plt.savefig('pics/dispatch_summer.png', dpi=150)
 plt.show()
  
 # Dispatch – winter week (first week of January)
-winter_start = pd.Timestamp('2010-01-05')
+winter_start = pd.Timestamp(f'{year}-01-05')
 winter_slice  = slice(winter_start, winter_start + pd.Timedelta(hours=167))
  
 fig, ax = plt.subplots(figsize=(12, 4))
@@ -107,12 +106,13 @@ ax.stackplot(ts.index, ts['Wind'], ts['Solar'], ts['OCGT'],
              labels=['Wind', 'Solar', 'OCGT'],
              colors=[COLORS['Wind'], COLORS['Solar'], COLORS['OCGT']], alpha=0.85)
 ax.plot(dem.index, dem.values, color='black', lw=1.5, label='Demand')
-ax.set_title('Dispatch - Winter Week (January 2010)')
+ax.set_title(f'Dispatch - Winter Week (January {year})')
 ax.set_ylabel('Power [MW]')
-ax.legend(loc='upper left', framealpha=0.9)
+ax.legend(loc='best', framealpha=0.9)
 ax.set_xlabel('Date')
+ax.set_xlim(ts.index[0], ts.index[-1])
 fig.tight_layout()
-#plt.savefig('dispatch_winter.png', dpi=150)
+plt.savefig('pics/dispatch_winter.png', dpi=150)
 plt.show()
  
 # Annual electricity mix (pie)
@@ -128,9 +128,9 @@ wedges, texts, autotexts = ax.pie(
 )
 for at in autotexts:
     at.set_fontsize(9)
-ax.set_title('Annual electricity mix - Italy 2010', y=1.03)
+ax.set_title(f'Annual electricity mix - Italy {year}', y=1.03)
 fig.tight_layout()
-#plt.savefig('electricity_mix.png', dpi=150)
+plt.savefig('pics/electricity_mix.png', dpi=150)
 plt.show()
  
 # Duration curves
@@ -146,14 +146,14 @@ for gen, col in [('Wind', COLORS['Wind']),
 sorted_dem = np.sort(n.loads_t.p['Demand'].values)[::-1]
 ax.plot(hours, sorted_dem, color='black', lw=1.2, ls='--', label='Demand')
  
-ax.set_title('Duration curves - Italy 2010')
+ax.set_title(f'Duration curves - Italy {year}')
 ax.set_xlabel('Hours (sorted)')
 ax.set_ylabel('Power [MW]')
 ax.legend(framealpha=0.9)
 ax.set_xlim(0, 8760)
 ax.set_ylim(bottom=0)
 fig.tight_layout()
-#plt.savefig('duration_curves.png', dpi=150)
+plt.savefig('pics/duration_curves.png', dpi=150)
 plt.show()
  
 # Capacity factors
@@ -174,11 +174,11 @@ for bar, val in zip(bars, vals):
             val + 0.01, f'{val:.2f}',
             ha='center', va='bottom', fontsize=10)
 ax.set_ylim(0, 1.05)
-ax.set_title('Capacity factors - Italy 2010')
+ax.set_title(f'Capacity factors - Italy {year}')
 ax.set_ylabel('Capacity factor [ ]')
 ax.set_xlabel('Generator')
 fig.tight_layout()
-#plt.savefig('capacity_factors.png', dpi=150)
+plt.savefig('pics/capacity_factors.png', dpi=150)
 plt.show()
 
 ### Part B
@@ -192,7 +192,48 @@ cf_results = {g: [] for g in ['Wind', 'Solar', 'OCGT']}  # capacity factors
 for yr in YEARS:
     print(f"\nSolving {yr} model …")
     try:
-        nn = build_and_solve(yr)
+        nn = pypsa.Network()
+        snapshots = pd.date_range(f'{yr}-01-01 00:00Z', f'{yr}-12-31 23:00Z', freq='h')
+        nn.set_snapshots(snapshots.values)
+        nn.add("Bus", "ITA")
+
+        demand = pd.read_csv('data/electricity_demand.csv', sep=';', index_col=0)
+        demand.index = pd.to_datetime(demand.index)
+        nn.add('Load', "Demand", bus='ITA', p_set=demand[country].values)
+
+        nn.add("Carrier", "Gas", co2_emissions=0.19)
+        nn.add("Carrier", "Wind")
+        nn.add("Carrier", "Solar")
+
+        data_wind = pd.read_csv('data/onshore_wind_1979-2017.csv', sep=';', index_col=0)
+        data_wind.index = pd.to_datetime(data_wind.index, utc=True)
+        cf_wind = data_wind[country][[h.strftime("%Y-%m-%dT%H:%M:%SZ") for h in nn.snapshots]]
+        capital_cost_wind = annuity(30, 0.07) * 910_000 * (1 + 0.033)
+        nn.add("Generator", "Wind",
+               bus="ITA", p_nom_extendable=True, carrier="Wind",
+               capital_cost=capital_cost_wind, marginal_cost=0,
+               p_max_pu=cf_wind.values)
+
+        data_solar = pd.read_csv('data/pv_optimal.csv', sep=';', index_col=0)
+        data_solar.index = pd.to_datetime(data_solar.index)
+        cf_solar = data_solar[country][[h.strftime("%Y-%m-%dT%H:%M:%SZ") for h in nn.snapshots]]
+        capital_cost_solar = annuity(25, 0.07) * 425_000 * (1 + 0.03)
+        nn.add("Generator", "Solar",
+               bus="ITA", p_nom_extendable=True, carrier="Solar",
+               capital_cost=capital_cost_solar, marginal_cost=0,
+               p_max_pu=cf_solar.values)
+
+        capital_cost_OCGT = annuity(25, 0.07) * 560_000 * (1 + 0.033)
+        fuel_cost  = 21.6
+        efficiency = 0.39
+        nn.add("Generator", "OCGT",
+               bus="ITA", carrier="Gas",
+               capital_cost=capital_cost_OCGT,
+               marginal_cost=fuel_cost / efficiency,
+               p_nom_extendable=True)
+
+        nn.optimize(solver_name='gurobi')
+
         for gen in ['Wind', 'Solar', 'OCGT']:
             p_nom = nn.generators.loc[gen, 'p_nom_opt']
             results[gen].append(p_nom)
@@ -247,10 +288,10 @@ for bar, mn, sd in zip(bars2, means, stds):
              mn + sd + max(means) * 0.01,
              f'{mn:.0f}\n±{sd:.0f}', ha='center', va='bottom', fontsize=8)
 ax2.set_ylabel('Capacity [MW]')
-ax2.set_title('Mean ± std of optimal capacity\n(2013-2017)')
+ax2.set_title(f'Mean ± std of optimal capacity\n({min(YEARS)}-{max(YEARS)})')
  
 fig.tight_layout()
-#plt.savefig('interannual_capacity.png', dpi=150)
+plt.savefig('pics/interannual_capacity.png', dpi=150)
 plt.show()
  
 # Capacity factor variability across weather years
@@ -281,10 +322,10 @@ for bar, mn, sd in zip(bars3, cf_means, cf_stds):
              f'{mn:.2f}\n±{sd:.2f}', ha='center', va='bottom', fontsize=8)
 ax2.set_ylabel('Capacity factor [ ]')
 ax2.set_ylim(0, 1)
-ax2.set_title('Mean ± std of capacity factor\n(2013-2017)')
+ax2.set_title(f'Mean ± std of capacity factor\n({min(YEARS)}-{max(YEARS)})')
  
 fig.tight_layout()
-#plt.savefig('interannual_cf.png', dpi=150)
+plt.savefig('pics/interannual_cf.png', dpi=150)
 plt.show()
 
 print("DONE!!!!")
