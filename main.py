@@ -86,10 +86,10 @@ ax.stackplot(ts.index, ts['Wind'], ts['Solar'], ts['OCGT'],
              labels=['Wind', 'Solar', 'OCGT'],
              colors=[COLORS['Wind'], COLORS['Solar'], COLORS['OCGT']], alpha=0.85)
 ax.plot(dem.index, dem.values, color='black', lw=1.5, label='Demand')
-ax.set_title(f'Dispatch - Summer Week (July {year})')
-ax.set_ylabel('Power [MW]')
-ax.legend(loc='best', framealpha=0.9)
-ax.set_xlabel('Date')
+#ax.set_title(f'Dispatch - Summer Week (July {year})', fontsize=16)
+ax.set_ylabel('Power [MW]', fontsize=18)
+ax.legend(loc='best', framealpha=0.9, fontsize=10)
+#ax.set_xlabel('Date', fontsize=14)
 ax.set_xlim(ts.index[0], ts.index[-1])
 fig.tight_layout()
 plt.savefig('pics/dispatch_summer.png', dpi=150)
@@ -98,7 +98,7 @@ plt.show()
 # Dispatch – winter week (first week of January)
 winter_start = pd.Timestamp(f'{year}-01-05')
 winter_slice  = slice(winter_start, winter_start + pd.Timedelta(hours=167))
- 
+
 fig, ax = plt.subplots(figsize=(12, 4))
 ts = n.generators_t.p.loc[winter_slice]
 dem = n.loads_t.p['Demand'].loc[winter_slice]
@@ -106,10 +106,10 @@ ax.stackplot(ts.index, ts['Wind'], ts['Solar'], ts['OCGT'],
              labels=['Wind', 'Solar', 'OCGT'],
              colors=[COLORS['Wind'], COLORS['Solar'], COLORS['OCGT']], alpha=0.85)
 ax.plot(dem.index, dem.values, color='black', lw=1.5, label='Demand')
-ax.set_title(f'Dispatch - Winter Week (January {year})')
-ax.set_ylabel('Power [MW]')
-ax.legend(loc='best', framealpha=0.9)
-ax.set_xlabel('Date')
+#ax.set_title(f'Dispatch - Winter Week (January {year})', fontsize=16)
+ax.set_ylabel('Power [MW]', fontsize=18)
+ax.legend(loc='best', framealpha=0.9, fontsize=10)
+#ax.set_xlabel('Date', fontsize=14)
 ax.set_xlim(ts.index[0], ts.index[-1])
 fig.tight_layout()
 plt.savefig('pics/dispatch_winter.png', dpi=150)
@@ -127,8 +127,8 @@ wedges, texts, autotexts = ax.pie(
     startangle=140,
 )
 for at in autotexts:
-    at.set_fontsize(9)
-ax.set_title(f'Annual electricity mix - Italy {year}', y=1.03)
+    at.set_fontsize(14)
+#ax.set_title(f'Annual electricity mix - Italy {year}', y=1.03, fontsize=16)
 fig.tight_layout()
 plt.savefig('pics/electricity_mix.png', dpi=150)
 plt.show()
@@ -146,10 +146,10 @@ for gen, col in [('Wind', COLORS['Wind']),
 sorted_dem = np.sort(n.loads_t.p['Demand'].values)[::-1]
 ax.plot(hours, sorted_dem, color='black', lw=1.2, ls='--', label='Demand')
  
-ax.set_title(f'Duration curves - Italy {year}')
-ax.set_xlabel('Hours (sorted)')
-ax.set_ylabel('Power [MW]')
-ax.legend(framealpha=0.9)
+#ax.set_title(f'Duration curves - Italy {year}', fontsize=16)
+ax.set_xlabel('Hours', fontsize=14)
+ax.set_ylabel('Power [MW]', fontsize=14)
+ax.legend(framealpha=0.9, fontsize=10)
 ax.set_xlim(0, 8760)
 ax.set_ylim(bottom=0)
 fig.tight_layout()
@@ -172,11 +172,11 @@ bars = ax.bar(gens, vals,
 for bar, val in zip(bars, vals):
     ax.text(bar.get_x() + bar.get_width() / 2,
             val + 0.01, f'{val:.2f}',
-            ha='center', va='bottom', fontsize=10)
+            ha='center', va='bottom', fontsize=12)
 ax.set_ylim(0, 1.05)
-ax.set_title(f'Capacity factors - Italy {year}')
-ax.set_ylabel('Capacity factor [ ]')
-ax.set_xlabel('Generator')
+#ax.set_title(f'Capacity factors - Italy {year}')
+ax.set_ylabel('Capacity factor [ ]', fontsize=14)
+#ax.set_xlabel('Generator', fontsize=14)
 fig.tight_layout()
 plt.savefig('pics/capacity_factors.png', dpi=150)
 plt.show()
@@ -262,8 +262,8 @@ for i, (gen, col) in enumerate([('Wind',  COLORS['Wind']),
            label=gen, color=col, edgecolor='white', linewidth=0.6)
 ax.set_xticks(x + width)
 ax.set_xticklabels(YEARS)
-ax.set_ylabel('Optimal capacity [MW]')
-ax.set_title('Optimal capacity per weather year')
+ax.set_ylabel('Optimal capacity [MW]', fontsize=14)
+#ax.set_title('Optimal capacity per weather year', fontsize=14)
 ax.legend()
  
 # Add mean ± std annotation 
@@ -286,9 +286,9 @@ ax2.errorbar(gens, means, yerr=stds, fmt='none',
 for bar, mn, sd in zip(bars2, means, stds):
     ax2.text(bar.get_x() + bar.get_width() / 2,
              mn + sd + max(means) * 0.01,
-             f'{mn:.0f}\n±{sd:.0f}', ha='center', va='bottom', fontsize=8)
-ax2.set_ylabel('Capacity [MW]')
-ax2.set_title(f'Mean ± std of optimal capacity\n({min(YEARS)}-{max(YEARS)})')
+             f'{mn:.0f}\n±{sd:.0f}', ha='center', va='bottom', fontsize=10)
+ax2.set_ylabel('Capacity [MW]', fontsize=14)
+#ax2.set_title(f'Mean ± std of optimal capacity\n({min(YEARS)}-{max(YEARS)})')
  
 fig.tight_layout()
 plt.savefig('pics/interannual_capacity.png', dpi=150)
@@ -319,10 +319,10 @@ ax2.errorbar(gens, cf_means, yerr=cf_stds, fmt='none',
 for bar, mn, sd in zip(bars3, cf_means, cf_stds):
     ax2.text(bar.get_x() + bar.get_width() / 2,
              mn + sd + 0.01,
-             f'{mn:.2f}\n±{sd:.2f}', ha='center', va='bottom', fontsize=8)
-ax2.set_ylabel('Capacity factor [ ]')
+             f'{mn:.2f}\n±{sd:.2f}', ha='center', va='bottom', fontsize=10)
+ax2.set_ylabel('Capacity factor []', fontsize=14)
 ax2.set_ylim(0, 1)
-ax2.set_title(f'Mean ± std of capacity factor\n({min(YEARS)}-{max(YEARS)})')
+#ax2.set_title(f'Mean ± std of capacity factor\n({min(YEARS)}-{max(YEARS)})')
  
 fig.tight_layout()
 plt.savefig('pics/interannual_cf.png', dpi=150)
