@@ -2,7 +2,7 @@
 assignment 1, group 22
 
 Authors:
-Kris, Pantelia, Francis, Mathieu
+Krists, Pantelia, Francis, Mathieu
 
 Course project repository for **DTU Course 46770: Integrated Energy Grids**.
 
