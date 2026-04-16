@@ -296,14 +296,15 @@ for i, (gen, col) in enumerate([('Wind',  COLORS['Wind']),
     vals = np.array(results[gen], dtype=float)
     # Offset each generator slightly on x-axis so dots don't overlap
     x_positions = x_years #+ (i - 1) * 0.3
-    ax.scatter(x_positions, vals, color=col, label=gen, s=60, zorder=3)
+    ax.scatter(x_positions, cf_results[gen], color=col, label=gen, s=60, zorder=3)
     # Connect dots with a line to show trend
-    ax.plot(x_positions, vals, color=col, lw=0.8, alpha=0.5)
+    ax.plot(x_positions, cf_results[gen], color=col, lw=0.8, alpha=0.5)
 
 ax.set_xticks(x_years)
 ax.set_xticklabels(YEARS)
-ax.set_ylabel('Optimal capacity [MW]', fontsize=14)
+ax.set_ylabel('Average Annual CF []', fontsize=14)
 ax.set_xlabel('Year', fontsize=14)
+ax.set_ylim(0, 1)
 ax.legend()
 ax.grid(axis='y', alpha=0.3)
 
