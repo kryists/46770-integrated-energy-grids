@@ -254,9 +254,9 @@ for i, line in n.lines.iterrows():
     G.add_edge(line.bus0, line.bus1)
 
 pos = {
-    'FRA': (-1, 1),
-    'CHE': (0, 1),
-    'AUT': (1, 1),
+    'FRA': (-0.4, 0.4),
+    'CHE': (0, 0.4),
+    'AUT': (0.4, 0.4),
     'ITA': (0, 0)
 }
 plt.figure(figsize=(8, 6))
@@ -273,7 +273,8 @@ nx.draw(
     arrowsize=20
 )
 
-plt.title("Italy and Neighbors", fontsize=14)
+#plt.title("Italy and Neighbors", fontsize=14)
+plt.savefig('pics/network.png', dpi=150)
 plt.show()
 
 # %% 
