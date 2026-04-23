@@ -20,7 +20,7 @@ n.set_snapshots(snapshots.values)
 n.add("Bus", "DNK")
  
 # Demand Data
-demand = pd.read_csv('electricity_demand.csv', sep=';', index_col=0)
+demand = pd.read_csv('data/electricity_demand.csv', sep=';', index_col=0)
 demand.index = pd.to_datetime(demand.index)
 
 n.add('Load', "Demand", bus='DNK', p_set=demand[country].values)
@@ -32,7 +32,7 @@ n.add("Carrier", "Offshore Wind")
 n.add("Carrier", "Solar")
 
 # Onshore Wind Data
-data_on_wind = pd.read_csv('onshore_wind_1979-2017.csv', sep=';', index_col=0)
+data_on_wind = pd.read_csv('data/onshore_wind_1979-2017.csv', sep=';', index_col=0)
 data_on_wind.index = pd.to_datetime(data_on_wind.index, utc=True)
 cf_on_wind = data_on_wind[country][[h.strftime("%Y-%m-%dT%H:%M:%SZ") for h in n.snapshots]]
 capital_cost_wind = annuity(30, 0.07) * 910_000 * (1 + 0.033)
@@ -42,7 +42,7 @@ n.add("Generator", "Onshore Wind",
           p_max_pu=cf_on_wind.values)
 
 # Offshore Wind Data
-data_of_wind = pd.read_csv('offshore_wind_1979-2017.csv', sep=';', index_col=0)
+data_of_wind = pd.read_csv('data/offshore_wind_1979-2017.csv', sep=';', index_col=0)
 data_of_wind.index = pd.to_datetime(data_of_wind.index, utc=True)
 cf_of_wind = data_of_wind[country][[h.strftime("%Y-%m-%dT%H:%M:%SZ") for h in n.snapshots]]
 capital_cost_of_wind = annuity(25, 0.07) * 2_506_000 * (1 + 0.033)
@@ -52,7 +52,7 @@ n.add("Generator", "Offshore Wind",
           p_max_pu=cf_of_wind.values)
 
 # Solar Data
-data_solar = pd.read_csv('pv_optimal.csv', sep=';', index_col=0)
+data_solar = pd.read_csv('data/pv_optimal.csv', sep=';', index_col=0)
 data_solar.index = pd.to_datetime(data_solar.index)
 cf_solar = data_solar[country][[h.strftime("%Y-%m-%dT%H:%M:%SZ") for h in n.snapshots]]
 capital_cost_solar = annuity(25, 0.07) * 725_000 * (1 + 0.02)
@@ -99,12 +99,12 @@ n_2050.set_snapshots(snapshots.values)
 # Bus
 n_2050.add("Bus", "DNK")
 
-# ------------------ Demand (+50%) ------------------
+
 n_2050.add(
     'Load',
     "Demand",
     bus='DNK',
-    p_set=2 * demand[country].values   
+    p_set=1.5 * demand[country].values   
 )
 
 # ------------------ Carriers ------------------
