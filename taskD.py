@@ -225,25 +225,25 @@ n.add("StorageUnit", "battery_ITA", bus="ITA", carrier="battery storage",
 # Italy - France
 n.add("Line",
     "ITA-FRA",bus0="ITA",bus1="FRA",
-    s_nom=400,x=0.1,r=0.01,
+    s_nom=3000,x=0.1,r=0.01,
 )
 
 # Italy - Switzerland
 n.add("Line",
     "ITA-CHE",bus0="ITA",bus1="CHE",
-    s_nom=400,x=0.1,r=0.01,
+    s_nom=4000,x=0.1,r=0.01,
 )
 
 # Italy - Austria
 n.add("Line",
     "ITA-AUT",bus0="ITA",bus1="AUT",
-    s_nom=400,x=0.1,r=0.01,
+    s_nom=1200,x=0.1,r=0.01,
 )
 
 # France - Switzerland
 n.add("Line",
     "FRA-CHE",bus0="FRA",bus1="CHE",
-    s_nom=400,x=0.1,r=0.01,
+    s_nom=3500,x=0.1,r=0.01,
 )
 
 # %%
@@ -259,23 +259,23 @@ pos = {
     'AUT': (0.4, 0.4),
     'ITA': (0, 0)
 }
-plt.figure(figsize=(8, 6))
-nx.draw(
-    G, pos,
-    with_labels=True, 
-    node_color='lightblue', 
-    node_size=2500, 
-    font_weight='bold',
-    edge_color='gray',
-    width=2,
-    arrows=True,
-    arrowstyle='-|>',
-    arrowsize=20
-)
+# plt.figure(figsize=(8, 6))
+# nx.draw(
+#     G, pos,
+#     with_labels=True, 
+#     node_color='lightblue', 
+#     node_size=2500, 
+#     font_weight='bold',
+#     edge_color='gray',
+#     width=2,
+#     arrows=True,
+#     arrowstyle='-|>',
+#     arrowsize=20
+# )
 
-#plt.title("Italy and Neighbors", fontsize=14)
-plt.savefig('pics/network.png', dpi=150)
-plt.show()
+# #plt.title("Italy and Neighbors", fontsize=14)
+# plt.savefig('pics/network.png', dpi=150)
+# plt.show()
 
 # %% 
 # Solve
@@ -356,6 +356,13 @@ ax.set_xlabel('Date')
 ax.set_xlim(winter_start, winter_start + pd.Timedelta(hours=167))
 fig.tight_layout()
 plt.show()
+
+# %% 
+# get average lines loading
+line_loading = n.lines_t.p0.abs() / n.lines.s_nom * 100
+print("=== Average line loading (%) ===")
+line_loading.mean()
+
 # %%
 # plot overall energy mix
 # Generators
