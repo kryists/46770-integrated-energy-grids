@@ -22,6 +22,8 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import warnings
 warnings.filterwarnings("ignore")
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # ── Utility (identical to Task C) ─────────────────────────────────────────────
 def annuity(y, r):
@@ -37,7 +39,7 @@ def strip_tz(s):
         s.index = s.index.tz_convert(None)
     return s
 
-# ── Parameters — exactly as in Task C (taskA.ipynb, Cell 101) ─────────────────
+# ── Parameters — exactly as in Task C ─────────────────
 year    = 2010
 country = "ITA"
 
@@ -50,16 +52,15 @@ marginal_cost_OCGT = fuel_cost / efficiency_OCGT                   # EUR/MWh_el
 capital_cost_battery = 24_678 + 2 * 12_894                         # EUR/MW/a
 eta_battery          = 0.96
 
-CO2_INTENSITY = 0.19   # tCO2/MWh_thermal (on Gas carrier, same as Task C)
+CO2_INTENSITY = 0.19   # tCO2/MWh_thermal
 
 # ── Historical references (Our World in Data, electricity + heat) ─────────────
-# Source: https://ourworldindata.org/grapher/co-emissions-by-sector?country=~ITA
 CO2_1990_Mt = 143.0    # MtCO2/year
 CO2_2023_Mt =  86.4    # MtCO2/year
 CO2_1990    = CO2_1990_Mt * 1e6   # tCO2/year
 CO2_2023    = CO2_2023_Mt * 1e6   # tCO2/year
 
-# ── Load data (identical to Task C) ───────────────────────────────────────────
+# ── Load data ───────────────────────────────────────────
 demand     = pd.read_csv('data/electricity_demand.csv',     sep=';', index_col=0)
 data_wind  = pd.read_csv('data/onshore_wind_1979-2017.csv', sep=';', index_col=0)
 data_solar = pd.read_csv('data/pv_optimal.csv',             sep=';', index_col=0)
@@ -68,7 +69,7 @@ demand.index     = pd.to_datetime(demand.index)
 data_wind.index  = pd.to_datetime(data_wind.index, utc=True)
 data_solar.index = pd.to_datetime(data_solar.index)
 
-# ── Network builder — mirrors Task C exactly ──────────────────────────────────
+# ── Network builder ──────────────────────────────────
 def build_network(co2_limit=None):
     """
     Build and solve the Italy single-country model from Task C.
@@ -133,9 +134,7 @@ def build_network(co2_limit=None):
     return n
 
 
-# =============================================================================
 # STEP 1 — Run unconstrained model to find natural CO2 ceiling
-# =============================================================================
 print("=" * 60)
 print("STEP 1: Unconstrained model (Task C baseline)")
 print("=" * 60)
@@ -155,9 +154,7 @@ print(f"  (gap expected: model covers electricity only)")
 print()
 
 
-# =============================================================================
 # STEP 2 — Define sweep range
-# =============================================================================
 # Upper bound  = unconstrained model emissions
 # Lower bound  = 1% of unconstrained (near-zero, fully decarbonised)
 # Points denser at tight end where technology transitions happen fastest
@@ -173,9 +170,7 @@ print(f"STEP 2: Sweep — {len(co2_limits)} points from "
 print()
 
 
-# =============================================================================
 # STEP 3 — Parametric sweep
-# =============================================================================
 print("=" * 60)
 print("STEP 3: CO2 sweep")
 print("=" * 60)
@@ -203,13 +198,13 @@ for i, limit in enumerate(co2_limits):
             "OCGT_TWh"      : n.generators_t.p["OCGT"].sum()  / 1e6,
             "Bat_TWh"       : n.storage_units_t.p["Battery"].clip(lower=0).sum() / 1e6,
             "cost_MEur"     : n.objective / 1e6,
-            "co2_price_EUR" : co2_price,
+            "co2_price_EUR" : -co2_price,
         })
 
     except Exception as e:
         print(f"    !! Solver failed: {e}")
 
-# Append unconstrained result (shadow price = 0 by definition)
+# Append unconstrained result
 records.append({
     "co2_limit_Mt"  : co2_free / 1e6,
     "pct_free"      : 100.0,
@@ -232,9 +227,7 @@ df = (pd.DataFrame(records)
 print("\nSweep complete.")
 
 
-# =============================================================================
 # STEP 4 — Plots
-# =============================================================================
 COLORS = {
     "Wind"   : "steelblue",
     "Solar"  : "gold",
@@ -244,7 +237,7 @@ COLORS = {
 
 x = df["co2_limit_Mt"].values
 
-# Vertical reference lines — only drawn if they fall within x-axis range
+# Vertical reference lines
 ref_lines = {
     f"1990 ref\n({CO2_1990_Mt:.0f} Mt)": CO2_1990_Mt,
     f"2023 ref\n({CO2_2023_Mt:.0f} Mt)": CO2_2023_Mt,
@@ -358,9 +351,7 @@ plt.show()
 print("Saved: pics/taskF_battery_vs_ocgt.png")
 
 
-# =============================================================================
 # STEP 5 — Key thresholds for report discussion
-# =============================================================================
 print("\n" + "=" * 60)
 print("KEY THRESHOLDS FOR REPORT DISCUSSION")
 print("=" * 60)
@@ -375,7 +366,7 @@ if not ocgt_small.empty:
 # At what budget does shadow price enter EU ETS range (>= 60 EUR/t)?
 ets_enter = df[df["co2_price_EUR"] >= 60]
 if not ets_enter.empty:
-    row = ets_enter.iloc[-1]   # last point where it's still >= 60 (loosest budget)
+    row = ets_enter.iloc[-1]   # last point where it's still >= 60
     print(f"Shadow price enters ETS range at : {row['co2_limit_Mt']:.2f} MtCO2/year")
 
 # Cost increase going from unconstrained to near-zero
