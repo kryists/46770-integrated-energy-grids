@@ -388,8 +388,8 @@ mix = gen_energy.copy()
 mix = mix.sort_index()
 mix = mix[mix > 0.01]
 carrier_country_colors = dict(zip(
-    ["OCGT_ITA", "OCGT_CHE", "OCGT_AUT", "onwind_ITA", "onwind_AUT", "onwind_FRA", "solar_ITA", "nuclear_FRA", "battery_ITA"],
-    ["indianred", "indianred", "indianred", "dodgerblue", "dodgerblue", "dodgerblue", "gold", "purple", "slategray"]
+    ["OCGT_ITA", "OCGT_CHE", "OCGT_AUT", "onwind_ITA","onwind_AUT","onwind_FRA","solar_ITA","solar_CHE","nuclear_FRA","battery_ITA"],
+    ["indianred","indianred","indianred","dodgerblue","dodgerblue","dodgerblue","gold",     "gold",     "purple",     "slategray"]
 ))
 colors_pie = [carrier_country_colors.get(t, "gray") for t in mix.index]
 
