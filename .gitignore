@@ -1,5 +1,7 @@
 # Python cache
 __pycache__/
 
-# Ignore all .png files in the pics directory
-pics/*.png
+*.png
+pics/
+results_*/
+results_h/
